@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage, VALID_USER, VALID_PASS } from '../../../pages/01-login/LoginPage';
+import { LoginPage, VALID_USER, VALID_PASS } from '../../../pages/01-Login/LoginPage';
 
 /**
  * Fitur Login (OrangeHRM) — Mode E2E (UI).

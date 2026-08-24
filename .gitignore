@@ -27,3 +27,8 @@ masterprompt.bak.md
 .playwright-cli/
 *.yml
 !specs/**/*.yml
+
+# Direktori kerja/editor (bukan artefak test)
+.claude/
+.github/
+.vscode/

@@ -1,14 +1,14 @@
 /**
  * Exploratory API Script - 01 Login (OrangeHRM)
  * Alur lengkap: GET login → ambil cookie session + CSRF token → POST /auth/validate.
- * Menyimpan log request/response ke test-results/api/01-login/evidence/.
+ * Menyimpan log request/response ke test-results/api/01-Login/evidence/.
  */
 import { request } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const BASE_URL = process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com';
-const EV_DIR = path.resolve(__dirname, '../../../test-results/api/01-login/evidence');
+const EV_DIR = path.resolve(__dirname, '../../../test-results/api/01-Login/evidence');
 
 function log(file: string, content: string) {
   fs.mkdirSync(EV_DIR, { recursive: true });
