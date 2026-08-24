@@ -1,0 +1,29 @@
+
+# Dependencies
+node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+/playwright-artifacts/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Orchestrator & Prompt Modules (tidak untuk di-commit)
+masterprompt.md
+prompts/
+masterprompt.bak.md
+
+# Artefak Eksplorasi (Playwright CLI)
+.playwright-cli/
+*.yml
+!specs/**/*.yml
