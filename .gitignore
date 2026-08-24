@@ -9,6 +9,7 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 /playwright-artifacts/
+/.playwright/
 
 # Environment & Secrets
 .env
