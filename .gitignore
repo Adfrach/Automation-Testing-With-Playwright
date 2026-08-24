@@ -19,6 +19,9 @@ node_modules/
 # Logs
 *.log
 
+# Dokumen PRD (tidak untuk di-commit)
+PRD/
+
 # Orchestrator & Prompt Modules (tidak untuk di-commit)
 masterprompt.md
 prompts/
