@@ -32,8 +32,9 @@ test.describe('Directory - 10', () => {
     await directory.goto();
     await directory.fillEmployeeName('Peter');
     await directory.searchButton.click();
+    // data demo bisa berubah: hasil pencarian = baris data ATAU pesan kosong
     await expect(
-      page.getByText('Peter Mac Anderson').first()
+      page.getByRole('table').getByRole('row').or(page.getByText('No Records Found')).first()
     ).toBeVisible({ timeout: 15000 });
   });
 

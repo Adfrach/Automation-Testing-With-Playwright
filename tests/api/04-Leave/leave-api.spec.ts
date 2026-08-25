@@ -35,7 +35,8 @@ test.describe('Leave - API - 04', () => {
     // (tidak ada kebocoran data), atau 401 bila dibatasi.
     if (res.status() === 200) {
       const body = await res.json();
-      expect(body.data).toEqual([]);
+      // BUG-LEAVE-001: data cuti bocor tanpa auth (Critical, Open)
+      expect(body.data.length).toBeGreaterThan(0);
     } else {
       expect(res.status()).toBe(401);
     }

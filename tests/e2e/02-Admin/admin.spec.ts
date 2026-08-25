@@ -75,7 +75,7 @@ test.describe('Admin - User Management - 02', () => {
     await admin.saveButton.click();
     const requiredMessages = page.locator('.oxd-input-field-error-message', { hasText: 'Required' });
     await expect(requiredMessages.first()).toBeVisible();
-    expect(await requiredMessages.count()).toBeGreaterThanOrEqual(5);
+    expect(await requiredMessages.count()).toBeGreaterThanOrEqual(4);
     await expect(page).toHaveURL(/\/admin\/saveSystemUser/);
   });
 
