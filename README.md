@@ -4,13 +4,18 @@ Framework otomasi pengujian E2E dan API untuk aplikasi OrangeHRM Open Source dem
 
 ## Tools yang Digunakan
 
-| Tool | Fungsi |
+| Tool / Komponen | Fungsi |
 |------|--------|
 | Playwright | Framework test E2E & API |
 | TypeScript | Bahasa pemrograman test |
 | Node.js | Runtime eksekusi |
 | Page Object Model (POM) | Pola desain untuk maintainability UI test |
 | Git / GitHub | Version control & repository |
+| AI Coding Agent (Cline) | Orkestrator yang menjalankan seluruh workflow pengujian |
+| Skill `playwright-cli` | Otomasi browser untuk eksplorasi manual (PRD Explorer) via CLI Playwright |
+| Agent `playwright-test-planner` | Menganalisis PRD dan menyusun test plan komprehensif |
+| Agent `playwright-test-healer` | Mendiagnosis kegagalan test dan melakukan self-healing pada script |
+| GitHub MCP Server | Integrasi commit/push langsung dari agent ke repository |
 
 ## Struktur Proyek
 
@@ -40,7 +45,7 @@ Penamaan folder fitur menggunakan format `<NN>-<feature>` (contoh: `01-login`, `
 ```mermaid
 flowchart TD
     A[User memilih mode] --> B{Mode?}
-    B -->|PRD Explorer| C[Eksplorasi app via browser]
+    B -->|PRD Explorer| C[Eksplorasi app via playwright-cli]
     C --> D[Generate PRD]
     B -->|API / E2E / Keduanya| E[Step 0: Init workspace]
     D --> E
@@ -48,10 +53,11 @@ flowchart TD
     F --> G[Step 2: Buat test plan]
     G --> H[Step 3: Exploratory testing]
     H --> I[Step 4: Generate automation script]
-    I --> J[Step 5: Eksekusi & self-healing]
-    J -->|Gagal| K[Analisis error & perbaiki script]
+    I --> J[Step 5: Eksekusi test + self-healing]
+    J --> L2{Lulus semua?}
+    L2 -->|tidak, gagal| K[test-healer mendiagnosis & perbaiki script]
     K --> J
-    J -->|Lulus| L[Step 6: Generate report]
+    L2 -->|ya| L[Step 6: Generate report]
     L --> M[Step 7: Commit & push ke GitHub]
 ```
 
