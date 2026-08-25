@@ -44,16 +44,27 @@ export class MaintenancePage {
   async confirmGate(): Promise<void> {
     const password = process.env.TEST_PASSWORD || 'admin123';
     for (let attempt = 0; attempt < 3; attempt++) {
-      // Healing iterasi 3: gunakan pengetikan keyboard (pressSequentially)
-      // agar event input React pasti terpicu di semua browser.
+      // Healing iterasi 5: pastikan gate benar-benar tampil sebelum mengisi
+      // password — jika gate sudah lewat, langsung return.
+      const gateVisible = await this.adminAccessHeading
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!gateVisible) return;
+      // bersihkan field password sebelum mengetik ulang
+      await this.gatePasswordInput.fill('');
       await this.gatePasswordInput.pressSequentially(password, { delay: 50 });
       await this.confirmButton.click();
-      const passed = await this.adminAccessHeading
-        .waitFor({ state: 'hidden', timeout: 8000 })
+      // Healing iterasi 6: tunggu purge heading muncul (bukti gate sukses
+      // dilewati) — bukan hanya gate hidden.
+      const passed = await this.purgeHeading
+        .waitFor({ state: 'visible', timeout: 15000 })
         .then(() => true)
         .catch(() => false);
       if (passed) return;
     }
+    // fallback: tunggu purge heading sekali lagi setelah loop
+    await this.purgeHeading.waitFor({ state: 'visible', timeout: 15000 });
   }
 
   /** Buka halaman Purge; konfirmasi password hanya jika gate muncul */

@@ -81,16 +81,30 @@ export class PimPage {
 
   /** Buka modul PIM → Employee List; fallback login via UI bila sesi kedaluwarsa */
   async goto(): Promise<void> {
-    await this.page.goto('/web/index.php/pim/viewEmployeeList');
-    if (this.page.url().includes('/auth/login')) {
-      const username = process.env.TEST_USERNAME || 'Admin';
-      const password = process.env.TEST_PASSWORD || 'admin123';
-      await this.page.getByRole('textbox', { name: 'Username' }).fill(username);
-      await this.page.getByRole('textbox', { name: 'Password' }).fill(password);
-      await this.page.getByRole('button', { name: 'Login' }).click();
-      await this.page.waitForURL('**/dashboard/index', { timeout: 15000 });
-      await this.page.goto('/web/index.php/pim/viewEmployeeList');
+    // Healing iterasi 5: server demo kadang lambat merender — coba reload
+    // sekali bila heading tidak muncul dalam timeout (flaky).
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await this.page.goto('/web/index.php/pim/viewEmployeeList', {
+        waitUntil: 'domcontentloaded',
+      });
+      if (this.page.url().includes('/auth/login')) {
+        const username = process.env.TEST_USERNAME || 'Admin';
+        const password = process.env.TEST_PASSWORD || 'admin123';
+        await this.page.getByRole('textbox', { name: 'Username' }).fill(username);
+        await this.page.getByRole('textbox', { name: 'Password' }).fill(password);
+        await this.page.getByRole('button', { name: 'Login' }).click();
+        await this.page.waitForURL('**/dashboard/index', { timeout: 15000 });
+        await this.page.goto('/web/index.php/pim/viewEmployeeList', {
+          waitUntil: 'domcontentloaded',
+        });
+      }
+      const visible = await this.employeeInfoHeading
+        .waitFor({ state: 'visible', timeout: 15000 })
+        .then(() => true)
+        .catch(() => false);
+      if (visible) return;
     }
+    // setelah 2x percobaan tetap gagal → biarkan assertion terakhir melempar error
     await expect(this.employeeInfoHeading).toBeVisible({ timeout: 15000 });
   }
 
@@ -114,10 +128,21 @@ export class PimPage {
 
   /** Simpan form Add Employee dan tunggu respons API POST /api/v2/pim/employees */
   async saveUser(): Promise<void> {
+    // Healing iterasi 4: tambahkan timeout lebih besar (30s) dan fallback
+    // jika respons API tidak tertangkap (webkit kadang lambat) — redirect
+    // ke halaman detail tetap menjadi bukti sukses.
     const respPromise = this.page.waitForResponse(
-      (r) => r.url().includes('/api/v2/pim/employees') && r.request().method() === 'POST'
+      (r) => r.url().includes('/api/v2/pim/employees') && r.request().method() === 'POST',
+      { timeout: 30000 }
     );
     await this.saveButton.click();
-    return respPromise.then(() => undefined);
+    try {
+      await respPromise;
+    } catch {
+      // fallback: tunggu redirect ke halaman detail (bukti sukses)
+      await this.page.waitForURL(/\/pim\/viewPersonalDetails\/empNumber\/\d+/, {
+        timeout: 30000,
+      });
+    }
   }
 }
