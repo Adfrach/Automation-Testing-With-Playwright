@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Page, type Response } from '@playwright/test';
 
 /**
  * Page Object Model - Modul My Info (Personal Details) OrangeHRM.
@@ -45,7 +45,10 @@ export class MyInfoPage {
 
   /** Buka menu My Info → Personal Details; fallback login via UI */
   async goto(): Promise<void> {
-    await this.page.goto('/web/index.php/pim/viewMyDetails');
+    // Healing: firefox kadang timeout menunggu "load" penuh — cukup domcontentloaded
+    await this.page.goto('/web/index.php/pim/viewMyDetails', {
+      waitUntil: 'domcontentloaded',
+    });
     if (this.page.url().includes('/auth/login')) {
       const username = process.env.TEST_USERNAME || 'Admin';
       const password = process.env.TEST_PASSWORD || 'admin123';
@@ -56,5 +59,14 @@ export class MyInfoPage {
       await this.page.goto('/web/index.php/pim/viewMyDetails');
     }
     await expect(this.personalDetailsHeading).toBeVisible({ timeout: 15000 });
+  }
+
+  /** Simpan Personal Details & tunggu respons API PUT employees (untuk assertion network). */
+  async saveAndWaitForResponse(): Promise<Response> {
+    const respPromise = this.page.waitForResponse(
+      (r) => r.url().includes('/api/v2/pim/employees') && r.request().method() === 'PUT'
+    );
+    await this.saveButton.click();
+    return respPromise;
   }
 }

@@ -17,6 +17,16 @@ export class RecruitmentPage {
   readonly resetButton;
   readonly candidatesTable;
 
+  /** Alert error global OrangeHRM (mis. validasi server). */
+  errorAlert() {
+    return this.page.locator('.oxd-alert--error');
+  }
+
+  /** Klik opsi pertama pada dropdown oxd yang sedang terbuka. */
+  async selectFirstDropdownOption(): Promise<void> {
+    await this.page.locator('.oxd-select-dropdown .oxd-select-option').first().click();
+  }
+
   constructor(page: Page) {
     this.page = page;
     this.recruitmentMenu = page.getByRole('link', { name: 'Recruitment' });

@@ -20,6 +20,12 @@ export class LeavePage {
   readonly resetButton;
   readonly noRecords;
 
+  /** Locator pesan error field OrangeHRM; opsional filter berdasarkan teks. */
+  fieldErrors(text?: string) {
+    const base = this.page.locator('.oxd-input-field-error-message');
+    return text ? base.filter({ hasText: text }) : base;
+  }
+
   // Halaman Apply Leave
   readonly applyHeading;
   readonly noLeaveTypesMessage;

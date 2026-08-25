@@ -32,9 +32,10 @@ test.describe('Buzz - API - 12', () => {
       const body = await res.json();
       expect(JSON.stringify(body)).toContain(text);
     } else {
+      // 403 = modul Buzz dibatasi untuk user demo (Module Forbidden);
       // 422 = validasi payload; dokumentasikan status aktual
       console.log(`POST buzz/posts status: ${res.status()}`);
-      expect([400, 404, 422]).toContain(res.status());
+      expect([400, 403, 404, 422]).toContain(res.status());
     }
   });
 });

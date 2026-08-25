@@ -31,20 +31,16 @@ test.describe('Performance - Manage Reviews - 08', () => {
     await performance.searchButton.click();
     // tidak ada error; tabel review tetap tampil
     await expect(performance.reviewsTable).toBeVisible({ timeout: 15000 });
-    const error = page.locator('.oxd-alert--error');
-    await expect(error).toHaveCount(0);
+    await expect(performance.errorAlert()).toHaveCount(0);
   });
 
   test('TC-03 Reset filter @regression', async ({ page }) => {
     await performance.goto();
     // ubah dropdown Include dari default "Current Employees Only"
-    const includeGroup = page.locator(
-      '.oxd-input-group:has(label:text-is("Include")) .oxd-select-text'
-    );
-    await includeGroup.click();
-    await page.locator('[role="option"]').first().click();
+    await performance.includeDropdownText().click();
+    await performance.selectFirstDropdownOption();
     await performance.resetButton.click();
     // perilaku aplikasi: input teks tidak dikosongkan; dropdown kembali default
-    await expect(includeGroup).toContainText('Current Employees Only');
+    await expect(performance.includeDropdownText()).toContainText('Current Employees Only');
   });
 });

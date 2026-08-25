@@ -42,8 +42,8 @@ test.describe('Maintenance - 11', () => {
 
   test('TC-03 Password benar + Confirm → Purge Employee Records @smoke @regression', async () => {
     await maintenance.goto();
-    await maintenance.gatePasswordInput.fill('admin123');
-    await maintenance.confirmButton.click();
+    // Healing: gunakan confirmGate() dengan retry (verifikasi gate flaky)
+    await maintenance.confirmGate();
     await expect(maintenance.purgeHeading).toBeVisible({ timeout: 15000 });
     await expect(maintenance.pastEmployeeInput).toBeVisible();
     await expect(maintenance.searchButton).toBeVisible();

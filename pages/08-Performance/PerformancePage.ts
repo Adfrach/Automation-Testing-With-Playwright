@@ -15,6 +15,21 @@ export class PerformancePage {
   readonly resetButton;
   readonly reviewsTable;
 
+  /** Alert error global OrangeHRM (mis. validasi server). */
+  errorAlert() {
+    return this.page.locator('.oxd-alert--error');
+  }
+
+  /** Select-text dropdown "Include". */
+  includeDropdownText() {
+    return this.page.locator('.oxd-input-group:has(label:text-is("Include")) .oxd-select-text');
+  }
+
+  /** Klik opsi pertama pada dropdown oxd yang sedang terbuka. */
+  async selectFirstDropdownOption(): Promise<void> {
+    await this.page.locator('[role="option"]').first().click();
+  }
+
   constructor(page: Page) {
     this.page = page;
     this.performanceMenu = page.getByRole('link', { name: 'Performance' });

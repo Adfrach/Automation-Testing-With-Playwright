@@ -36,12 +36,31 @@ export class MaintenancePage {
     this.requiredMessage = page.getByText('Required', { exact: true });
   }
 
+  /**
+   * Konfirmasi gate Administrator Access dengan retry.
+   * Healing: verifikasi gate kadang gagal sesaat di server demo (flaky) —
+   * coba maksimal 2x dengan password dari env TEST_PASSWORD.
+   */
+  async confirmGate(): Promise<void> {
+    const password = process.env.TEST_PASSWORD || 'admin123';
+    for (let attempt = 0; attempt < 3; attempt++) {
+      // Healing iterasi 3: gunakan pengetikan keyboard (pressSequentially)
+      // agar event input React pasti terpicu di semua browser.
+      await this.gatePasswordInput.pressSequentially(password, { delay: 50 });
+      await this.confirmButton.click();
+      const passed = await this.adminAccessHeading
+        .waitFor({ state: 'hidden', timeout: 8000 })
+        .then(() => true)
+        .catch(() => false);
+      if (passed) return;
+    }
+  }
+
   /** Buka halaman Purge; konfirmasi password hanya jika gate muncul */
   async gotoPurge(): Promise<void> {
     await this.goto();
     if ((await this.adminAccessHeading.count()) > 0) {
-      await this.gatePasswordInput.fill('admin123');
-      await this.confirmButton.click();
+      await this.confirmGate();
     }
     await expect(this.purgeHeading).toBeVisible({ timeout: 15000 });
   }

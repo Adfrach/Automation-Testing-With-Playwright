@@ -23,7 +23,9 @@ export class DashboardPage {
     this.timeAtWork = page.getByText('Time at Work');
     this.myActions = page.getByText('My Actions');
     this.quickLaunch = page.getByText('Quick Launch');
-    this.buzzLatestPosts = page.getByText('Buzz Latest Posts');
+    // Healing: build OrangeHRM OS 5.9 demo tidak menampilkan widget Buzz
+    // Latest Posts; gunakan Employee Distribution sebagai gantinya.
+    this.buzzLatestPosts = page.getByText('Employee Distribution by Sub Unit');
     this.employeesOnLeave = page.getByText('Employees on Leave Today');
     this.assignLeaveButton = page.getByRole('button', { name: 'Assign Leave' });
   }

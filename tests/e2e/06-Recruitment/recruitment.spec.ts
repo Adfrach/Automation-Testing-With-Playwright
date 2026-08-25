@@ -33,15 +33,14 @@ test.describe('Recruitment - Candidates - 06', () => {
     await recruitment.searchButton.click();
     // tidak ada error; tabel kandidat tetap tampil
     await expect(recruitment.candidatesTable).toBeVisible({ timeout: 15000 });
-    const error = page.locator('.oxd-alert--error');
-    await expect(error).toHaveCount(0);
+    await expect(recruitment.errorAlert()).toHaveCount(0);
   });
 
   test('TC-03 Reset filter @regression', async () => {
     await recruitment.goto();
     // pilih opsi pertama pada dropdown Job Title
     await recruitment.jobTitleDropdown.click();
-    await recruitment.page.locator('.oxd-select-dropdown .oxd-select-option').first().click();
+    await recruitment.selectFirstDropdownOption();
     await recruitment.resetButton.click();
     // dropdown kembali ke default "-- Select --"
     await expect(

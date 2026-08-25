@@ -74,7 +74,7 @@ test.describe('PIM - Employee Management - 03', () => {
     await pim.goto();
     await pim.openAddEmployeeForm();
     await pim.saveButton.click();
-    const requiredMessages = page.locator('.oxd-input-field-error-message', { hasText: 'Required' });
+    const requiredMessages = pim.fieldErrors('Required');
     await expect(requiredMessages.first()).toBeVisible();
     expect(await requiredMessages.count()).toBeGreaterThanOrEqual(2);
     await expect(page).toHaveURL(/\/pim\/addEmployee/);
@@ -85,9 +85,7 @@ test.describe('PIM - Employee Management - 03', () => {
     await pim.openAddEmployeeForm();
     await pim.enableLoginDetails();
     await expect(pim.usernameInput).toBeVisible();
-    await expect(
-      page.locator('.oxd-input-group:has(label:text-is("Status"))')
-    ).toBeVisible();
+    await expect(pim.statusGroup()).toBeVisible();
     await expect(pim.passwordInput).toBeVisible();
   });
 

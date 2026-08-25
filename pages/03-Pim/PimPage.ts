@@ -30,6 +30,17 @@ export class PimPage {
   readonly loginDetailsToggle;
   readonly saveButton;
   readonly cancelButton;
+
+  /** Locator pesan error field OrangeHRM; opsional filter berdasarkan teks. */
+  fieldErrors(text?: string) {
+    const base = this.page.locator('.oxd-input-field-error-message');
+    return text ? base.filter({ hasText: text }) : base;
+  }
+
+  /** Grup form field Status (label persis "Status"). */
+  statusGroup() {
+    return this.page.locator('.oxd-input-group:has(label:text-is("Status"))');
+  }
   readonly photoHint;
   readonly usernameInput;
   readonly passwordInput;

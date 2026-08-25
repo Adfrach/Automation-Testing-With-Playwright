@@ -73,7 +73,7 @@ test.describe('Admin - User Management - 02', () => {
     await admin.goto();
     await admin.openAddUserForm();
     await admin.saveButton.click();
-    const requiredMessages = page.locator('.oxd-input-field-error-message', { hasText: 'Required' });
+    const requiredMessages = admin.fieldErrors('Required');
     await expect(requiredMessages.first()).toBeVisible();
     expect(await requiredMessages.count()).toBeGreaterThanOrEqual(4);
     await expect(page).toHaveURL(/\/admin\/saveSystemUser/);
@@ -87,9 +87,7 @@ test.describe('Admin - User Management - 02', () => {
       confirmPassword: 'Test@9999',
     });
     await admin.saveButton.click();
-    await expect(
-      page.locator('.oxd-input-field-error-message', { hasText: 'Passwords do not match' })
-    ).toBeVisible();
+    await expect(admin.fieldErrors('Passwords do not match').first()).toBeVisible();
   });
 
   test('TC-08 Tambah user baru valid (happy flow) @smoke @regression', async ({ page }) => {
@@ -109,5 +107,13 @@ test.describe('Admin - User Management - 02', () => {
     // verifikasi user baru muncul via filter
     await admin.searchByUsername(UNIQUE);
     await expect(admin.tableRows.first()).toContainText(UNIQUE, { timeout: 10000 });
+  });
+
+  test('TC-09 Hapus user yang dibuat TC-08 (state transition CRUD) @regression', async () => {
+    await admin.goto();
+    await admin.deleteUserByUsername(UNIQUE);
+    // setelah delete, filter username tidak menemukan lagi
+    await admin.searchByUsername(UNIQUE);
+    await expect(admin.tableRows).toHaveCount(0, { timeout: 10000 });
   });
 });

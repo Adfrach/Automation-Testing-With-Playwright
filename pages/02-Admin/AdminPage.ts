@@ -30,6 +30,9 @@ export class AdminPage {
   readonly cancelButton;
   readonly passwordHint;
 
+  // Baris tabel & aksi delete
+  readonly confirmDeleteButton;
+
   constructor(page: Page) {
     this.page = page;
     this.adminMenu = page.getByRole('link', { name: 'Admin' });
@@ -55,6 +58,26 @@ export class AdminPage {
     this.saveButton = page.getByRole('button', { name: 'Save' });
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     this.passwordHint = page.getByText('For a strong password', { exact: false });
+
+    // Dialog konfirmasi delete
+    this.confirmDeleteButton = page.getByRole('button', { name: 'Yes, Delete' });
+  }
+
+  /** Locator pesan error field OrangeHRM; opsional filter berdasarkan teks. */
+  fieldErrors(text?: string) {
+    const base = this.page.locator('.oxd-input-field-error-message');
+    return text ? base.filter({ hasText: text }) : base;
+  }
+
+  /** Hapus user pertama hasil filter username via ikon trash di baris tabel. */
+  async deleteUserByUsername(username: string): Promise<void> {
+    await this.searchByUsername(username);
+    const row = this.tableRows.filter({ hasText: username }).first();
+    // Healing: target ikon trash secara eksplisit (tombol terakhir bisa jadi
+    // ikon pensil/edit yang membuka halaman Edit User, bukan dialog delete).
+    await row.locator('i.oxd-icon.bi-trash').click();
+    await this.confirmDeleteButton.click();
+    await expect(this.recordsCounter).toContainText('Record', { timeout: 10000 });
   }
 
   /** Buka modul Admin dari sidebar; fallback login via UI bila sesi kedaluwarsa */

@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, Response, expect } from '@playwright/test';
 
 const VALID_USER = process.env.TEST_USERNAME || 'Admin';
 const VALID_PASS = process.env.TEST_PASSWORD || 'admin123';
@@ -43,13 +43,17 @@ export class LoginPage {
     await this.loginButton.click();
   }
 
-  /** Menandakan submit & menunggu respons login selesai (opsional utk assertion network). */
-  async clickLoginAndWaitForResponse(): Promise<void> {
+  /** Submit login & tunggu respons endpoint auth/validate (untuk assertion network). */
+  async clickLoginAndWaitForResponse(): Promise<Response> {
     const responsePromise = this.page.waitForResponse((resp) =>
       resp.url().includes('/auth/validate')
     );
     await this.loginButton.click();
-    await responsePromise;
+    return responsePromise;
+  }
+
+  async clickForgotPassword(): Promise<void> {
+    await this.forgotPasswordLink.click();
   }
 
   async login(username: string, password: string): Promise<void> {
