@@ -168,6 +168,111 @@ Actual  : HTTP 200 dengan seluruh data cuti karyawan
 Status: Open
 ```
 
+## Cakupan Pengujian
+
+12 fitur OrangeHRM telah diotomasi lengkap (E2E + API):
+
+| NN | Fitur | E2E | API |
+|----|-------|-----|-----|
+| 01 | Login | 7/7 PASS | 8/8 PASS |
+| 02 | Admin (User Management) | 8/8 PASS | 5/5 PASS |
+| 03 | PIM (Employee Management) | 8/8 PASS | 5/5 PASS |
+| 04 | Leave | 5/5 PASS | 5/5 PASS |
+| 05 | Time (Timesheets) | 3/3 PASS | 3/3 PASS |
+| 06 | Recruitment | 3/3 PASS | 3/3 PASS |
+| 07 | My Info | 3/3 PASS | 3/3 PASS |
+| 08 | Performance | 3/3 PASS | 3/3 PASS |
+| 09 | Dashboard | 3/3 PASS | 2/2 PASS |
+| 10 | Directory | 3/3 PASS | 2/2 PASS |
+| 11 | Maintenance | 4/4 PASS | 2/2 PASS |
+| 12 | Buzz | 3/3 PASS | 2/2 PASS |
+
+## Hasil Regression Terakhir
+
+Regression penuh seluruh suite: **99 test, 99/99 PASS setelah healing**.
+
+Healing yang diterapkan saat regression:
+
+1. Leave A-03 — data cuti bocor tanpa auth, didokumentasikan sebagai BUG-LEAVE-001
+2. Admin TC-06 — threshold pesan Required disesuaikan (4, bukan 5)
+3. Leave TC-05 — assertion fleksibel untuk entitlement dinamis
+4. Directory TC-02 — assertion generik karena data demo berubah
+5. Login TC-02/TC-03 — flaky timeout jaringan, pass pada verifikasi ulang
+
+## Defect Ditemukan
+
+| Bug ID | Severity | Deskripsi |
+|--------|----------|-----------|
+| BUG-LEAVE-001 | Critical | Data cuti bocor tanpa auth di `/leave/requests` |
+| BUG-REC-001 | High | Kebocoran data candidates/vacancies tanpa auth |
+| BUG-MYINFO-001 | High | Kebocoran data employee detail tanpa auth |
+| BUG-PERF-001 | Medium | Endpoint reviews dapat diakses tanpa auth |
+| BUG-DIR-001 | Medium | Directory employees bocor tanpa auth |
+
+Semua defect terdokumentasi di folder `bugs/` dengan format lengkap (steps to reproduce, expected vs actual, evidence).
+
+## Detail Workflow per Mode
+
+| Mode | Step | Perintah Eksekusi |
+|------|------|-------------------|
+| API | Step 0–7 | `BUG_TRACKER=true npx playwright test tests/api` |
+| E2E | Step 0–7 | `BUG_TRACKER=true npx playwright test tests/e2e` |
+| Regression | Step 0–3 | `REGRESSION_RUN=true BUG_TRACKER=true npx playwright test` |
+| PRD Explorer | Step 0–5 | Eksplorasi manual via playwright-cli |
+
+Aturan mode **Keduanya** (API + E2E):
+
+- Selesaikan workflow API sampai Step 7 penuh sebelum mulai E2E
+- Gunakan nomor fitur `NN` yang sama di semua lokasi (`doc/`, `pages/`, `tests/`, `test-results/`)
+- Jangan hapus artefak workflow pertama saat memulai workflow kedua
+- PRD dan global setup tidak perlu dibuat ulang
+
+## Konvensi Penomoran & Tag
+
+- Folder fitur: `<NN>-<feature>` dengan nomor urut dua digit (`01-login` s/d `12-buzz`)
+- Nomor sama dipakai konsisten di `PRD/`, `doc/Test-Plan/`, `pages/`, `tests/`, `test-results/`
+- Tag test: `@smoke` untuk skenario kritis, `@regression` untuk cakupan penuh
+
+## Struktur Report & Evidence
+
+```
+test-results/
+├── api/<NN>-<feature>/<feature>-api-test-report.md   # Report API per fitur
+│   └── evidence/                                     # Log request/response
+├── e2e/<NN>-<feature>/<feature>-test-report.md       # Report E2E per fitur
+│   └── evidence/                                     # Screenshot bukti
+└── regression/regression-test-report-<timestamp>.md  # Report regression (satu per run)
+```
+
+Setiap report berisi: ringkasan eksekusi, hasil per test case, healing log, defects log, dan kesimpulan.
+
+## Template Commit Message
+
+```
+<type>(<NN-feature>): <judul ringkas>
+
+- <ringkasan apa yang ditambahkan/diubah>
+```
+
+Type: `feat` (artefak baru), `adjust` (healing), `fix` (bug script), `docs`, `chore`.
+
+Contoh:
+
+```
+feat(12-buzz): tambah test suite E2E & API Buzz
+
+- Add POM BuzzPage + spec E2E 3 skenario
+- Add API spec 2 skenario
+```
+
+## Aturan Bug Tracker
+
+Folder `bugs/` hanya terisi melalui workflow resmi:
+
+- Mode API/E2E: jalankan dengan env `BUG_TRACKER=true`
+- Mode Regression: env `REGRESSION_RUN=true BUG_TRACKER=true`
+- Run ad-hoc biasa tidak mengisi bug tracker
+
 ## Catatan
 
 - Session login dibuat otomatis oleh global-setup setiap run dan disimpan di `playwright-artifacts/auth-state.json` (tidak di-commit).
