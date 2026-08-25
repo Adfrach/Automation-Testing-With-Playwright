@@ -13,6 +13,7 @@ export default defineConfig({
   reporter: 'html',
   globalSetup: './tests/global-setup/global-setup.ts',
   use: {
+    baseURL: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
     trace: 'on-first-retry',
   },
   projects: [
