@@ -10,7 +10,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  // JSON reporter: data machine-readable per run (zero token) + HTML untuk manual
+  reporter: [['json', { outputFile: 'test-results/report.json' }], ['html']],
   globalSetup: './tests/global-setup/global-setup.ts',
   use: {
     baseURL: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
