@@ -1,6 +1,6 @@
 # QA Automation Framework — OrangeHRM (Playwright + TypeScript)
 
-Framework otomasi pengujian E2E dan API untuk aplikasi OrangeHRM Open Source demo. Seluruh siklus pengujian dikerjakan oleh AI agent mengikuti workflow terstruktur: eksplorasi PRD, test plan, pembuatan script, eksekusi dengan self-healing, hingga reporting.
+Framework otomasi pengujian E2E dan API untuk aplikasi OrangeHRM Open Source demo. Seluruh siklus pengujian dikerjakan oleh AI agent mengikuti workflow terstruktur: eksplorasi PRD, test plan, pembuatan script, eksekusi dengan self-healing, hingga commit.
 
 ## Tools yang Digunakan
 
@@ -10,12 +10,13 @@ Framework otomasi pengujian E2E dan API untuk aplikasi OrangeHRM Open Source dem
 | TypeScript | Bahasa pemrograman test |
 | Node.js | Runtime eksekusi |
 | Page Object Model (POM) | Pola desain untuk maintainability UI test |
-| Git / GitHub | Version control & repository |
+| Git / GitHub | Version control & repository (commit via git CLI) |
 | AI Coding Agent (Cline) | Orkestrator yang menjalankan seluruh workflow pengujian |
 | Skill `playwright-cli` | Otomasi browser untuk eksplorasi manual (PRD Explorer) via CLI Playwright |
 | Agent `playwright-test-planner` | Menganalisis PRD dan menyusun test plan komprehensif |
 | Agent `playwright-test-healer` | Mendiagnosis kegagalan test dan melakukan self-healing pada script |
-| GitHub MCP Server | Integrasi commit/push langsung dari agent ke repository |
+
+> Catatan: nama-nama agent di atas adalah **peran yang dijalankan oleh AI agent itu sendiri**, bukan subagent eksternal.
 
 ## Struktur Proyek
 
@@ -32,7 +33,7 @@ Framework otomasi pengujian E2E dan API untuk aplikasi OrangeHRM Open Source dem
 │   ├── helpers/              # Utility functions
 │   └── global-setup/         # Login via UI + session storage state
 ├── scripts/exploratory/      # Script eksplorasi manual
-├── test-results/             # Report & evidence hasil eksekusi
+├── test-results/             # Evidence + report.json hasil eksekusi
 ├── bugs/                     # Defect log yang ditemukan saat testing
 ├── playwright.config.ts      # Konfigurasi Playwright
 └── specs/README.md           # Dokumentasi singkat
@@ -57,8 +58,7 @@ flowchart TD
     J --> L2{Lulus semua?}
     L2 -->|tidak, gagal| K[test-healer mendiagnosis & perbaiki script]
     K --> J
-    L2 -->|ya| L[Step 6: Generate report]
-    L --> M[Step 7: Commit & push ke GitHub]
+    L2 -->|ya| M[Step 6: Commit & push ke GitHub]
 ```
 
 Mode yang tersedia:
@@ -68,6 +68,7 @@ Mode yang tersedia:
 - **Keduanya** — jalankan API lalu E2E untuk fitur yang sama
 - **Regression** — jalankan seluruh suite yang ada + auto-heal kegagalan
 - **PRD Explorer** — eksplorasi area aplikasi dan hasilkan PRD
+- **Full Application** — eksplorasi menyeluruh → loop semua fitur via API + E2E
 
 ## Cara Menulis Prompt Berdasarkan Workflow
 
@@ -84,8 +85,7 @@ Contoh prompt regression:
 
 ```
 Jalankan regression penuh seluruh suite (E2E + API),
-heal semua kegagalan tanpa membuat test baru,
-dan buat report regression timestamped.
+heal semua kegagalan tanpa membuat test baru.
 ```
 
 ## Instalasi
@@ -128,26 +128,11 @@ Melihat report HTML:
 npx playwright show-report
 ```
 
-## Contoh Hasil Test Report
+## Hasil Eksekusi & Reporting
 
-Report disimpan di `test-results/e2e/<NN>-<feature>/` dan `test-results/api/<NN>-<feature>/`. Contoh ringkasan:
+Setiap run otomatis menghasilkan data machine-readable oleh **Playwright JSON reporter** di `test-results/report.json` (total/passed/failed/flaky per project). Ringkasan visual tersedia via `npx playwright show-report`. Tidak ada file report Markdown yang di-generate manual.
 
-```
-# Test Report - Buzz - E2E
-
-Ringkasan Eksekusi
-Total Test : 3
-Passed     : 3
-Failed     : 0
-
-Hasil Per Test Case
-TC-01  Buka halaman Buzz            PASS
-TC-02  Post teks muncul di feed     PASS
-TC-03  Filter Most Liked Posts      PASS
-
-Healing Log
-1. TC-02: tombol "Post" strict-mode violation -> locator exact:true
-```
+Evidence (screenshot UI / log request-response API) tersimpan di `test-results/{e2e,api}/<NN>-<feature>/evidence/`.
 
 ## Contoh Reporting Bug
 
@@ -174,7 +159,7 @@ Status: Open
 
 | NN | Fitur | E2E | API |
 |----|-------|-----|-----|
-| 01 | Login | 7/7 PASS | 8/8 PASS |
+| 01 | Login | ✅ | ✅ |
 | 02 | Admin (User Management) | 8/8 PASS | 5/5 PASS |
 | 03 | PIM (Employee Management) | 8/8 PASS | 5/5 PASS |
 | 04 | Leave | 5/5 PASS | 5/5 PASS |
@@ -186,18 +171,6 @@ Status: Open
 | 10 | Directory | 3/3 PASS | 2/2 PASS |
 | 11 | Maintenance | 4/4 PASS | 2/2 PASS |
 | 12 | Buzz | 3/3 PASS | 2/2 PASS |
-
-## Hasil Regression Terakhir
-
-Regression penuh seluruh suite: **99 test, 99/99 PASS setelah healing**.
-
-Healing yang diterapkan saat regression:
-
-1. Leave A-03 — data cuti bocor tanpa auth, didokumentasikan sebagai BUG-LEAVE-001
-2. Admin TC-06 — threshold pesan Required disesuaikan (4, bukan 5)
-3. Leave TC-05 — assertion fleksibel untuk entitlement dinamis
-4. Directory TC-02 — assertion generik karena data demo berubah
-5. Login TC-02/TC-03 — flaky timeout jaringan, pass pada verifikasi ulang
 
 ## Defect Ditemukan
 
@@ -215,16 +188,17 @@ Semua defect terdokumentasi di folder `bugs/` dengan format lengkap (steps to re
 
 | Mode | Step | Perintah Eksekusi |
 |------|------|-------------------|
-| API | Step 0–7 | `BUG_TRACKER=true npx playwright test tests/api` |
-| E2E | Step 0–7 | `BUG_TRACKER=true npx playwright test tests/e2e` |
-| Regression | Step 0–3 | `REGRESSION_RUN=true BUG_TRACKER=true npx playwright test` |
+| API | Step 0–6 | `BUG_TRACKER=true npx playwright test tests/api` |
+| E2E | Step 0–6 | `BUG_TRACKER=true npx playwright test tests/e2e` |
+| Regression | Step 0–2 | `REGRESSION_RUN=true BUG_TRACKER=true npx playwright test` |
 | PRD Explorer | Step 0–5 | Eksplorasi manual via playwright-cli |
 
 Aturan mode **Keduanya** (API + E2E):
 
-- Selesaikan workflow API sampai Step 7 penuh sebelum mulai E2E
+- Selesaikan workflow API sampai Step 6 penuh sebelum mulai E2E
 - Gunakan nomor fitur `NN` yang sama di semua lokasi (`doc/`, `pages/`, `tests/`, `test-results/`)
 - Jangan hapus artefak workflow pertama saat memulai workflow kedua
+- Step 0 cukup sekali per fitur — inisialisasi struktural dilakukan saat alur API
 - PRD dan global setup tidak perlu dibuat ulang
 
 ## Konvensi Penomoran & Tag
@@ -232,19 +206,6 @@ Aturan mode **Keduanya** (API + E2E):
 - Folder fitur: `<NN>-<feature>` dengan nomor urut dua digit (`01-login` s/d `12-buzz`)
 - Nomor sama dipakai konsisten di `PRD/`, `doc/Test-Plan/`, `pages/`, `tests/`, `test-results/`
 - Tag test: `@smoke` untuk skenario kritis, `@regression` untuk cakupan penuh
-
-## Struktur Report & Evidence
-
-```
-test-results/
-├── api/<NN>-<feature>/<feature>-api-test-report.md   # Report API per fitur
-│   └── evidence/                                     # Log request/response
-├── e2e/<NN>-<feature>/<feature>-test-report.md       # Report E2E per fitur
-│   └── evidence/                                     # Screenshot bukti
-└── regression/regression-test-report-<timestamp>.md  # Report regression (satu per run)
-```
-
-Setiap report berisi: ringkasan eksekusi, hasil per test case, healing log, defects log, dan kesimpulan.
 
 ## Template Commit Message
 
@@ -276,5 +237,5 @@ Folder `bugs/` hanya terisi melalui workflow resmi:
 ## Catatan
 
 - Session login dibuat otomatis oleh global-setup setiap run dan disimpan di `playwright-artifacts/auth-state.json` (tidak di-commit).
-- Report dan evidence tidak di-commit; di-generate ulang setiap eksekusi.
-- Regression report tersimpan sebagai `test-results/regression/regression-test-report-<timestamp>.md`.
+- Evidence tidak di-commit; di-generate ulang setiap eksekusi.
+- Data hasil run machine-readable tersimpan otomatis di `test-results/report.json` (Playwright JSON reporter).
